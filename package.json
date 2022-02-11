@@ -1,6 +1,6 @@
 {
   "name": "apiutils",
-  "version": "0.0.0-beta.9",
+  "version": "0.0.1",
   "description": "Typescript SDK for interacting with Meraki's public API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,8 @@
   "scripts": {
     "test": "jest",
     "build": "tsc --build",
-    "lint": "eslint --ext .js,.ts test/ src/"
+    "lint": "eslint --ext .js,.ts test/ src/",
+    "publishPackage": "tsc --build && npm publish --registry https://artifactory.ikarem.io/artifactory/api/npm/meraki-npm-packages/"
   },
   "repository": {
     "type": "git",
