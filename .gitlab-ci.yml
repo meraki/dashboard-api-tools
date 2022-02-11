@@ -46,10 +46,9 @@ test:
 
 publish:
   stage: publish
+  when: manual
   needs:
     - build
   script:
     - echo "Publishing package to Artifactory..."
-    - sleep 10
-    - echo "Publishing complete!"
-    
+    - npm run publish

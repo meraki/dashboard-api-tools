@@ -108,3 +108,8 @@ try {
   }
 }
 ```
+
+# Contributing
+After making changes to this project, update the version number in `package.json` and create your Merge Request.
+After running automatic steps, the ci pipeline for this job will provide a manual step called "publish".
+Running this step will publish the newest version of the package to Artifactory.
