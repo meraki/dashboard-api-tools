@@ -51,4 +51,4 @@ publish:
     - build
   script:
     - echo "Publishing package to Artifactory..."
-    - npm run publish
+    - npm run publishPackage
