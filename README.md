@@ -1,4 +1,4 @@
-# ApiUtils
+# @dashboard-api/api-utils
 
 Typescript SDK for interacting with Meraki's public API.
 
@@ -57,15 +57,15 @@ Promise<{
 #### Example
 ##### Install
 ```
-yarn add apiutils
+yarn add @dashboard-api/api-utils
 ```
 ```
-npm install apiutils
+npm install @dashboard-api/api-utils
 ```
 
 ##### Usage
 ```
-import { apiRequest } from "apiutils";
+import { apiRequest } from "@dashboard-api/api-utils";
 
 ...
 
