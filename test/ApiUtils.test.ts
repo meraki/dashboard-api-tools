@@ -9,13 +9,19 @@ describe("ApiUtils", () => {
     });
 
     describe("success", () => {
-      const responseData = { clients: [{ name: "name" }] };
+      type ObjectResponseData = {
+        id: string,
+        count: number
+      }
+      type ArrayResponseData = Array<ObjectResponseData>
+
+      const responseObject = { id: "1234", count: 23 };
 
       describe("parses metadata", () => {
         beforeAll(() => {
           global.fetch = jest.fn(() => Promise.resolve(
             {
-              json: () => Promise.resolve(responseData),
+              json: () => Promise.resolve(responseObject),
               status: 200,
               ok: true,
             }),
@@ -28,10 +34,45 @@ describe("ApiUtils", () => {
           expect(apiResponse.ok).toBe(true);
         });
 
-        it("returns data", async () => {
-          const apiResponse = await apiRequest("GET", "www.fakeurl.com", { requestParameter: "requestValue" });
+        describe("when response object is an object", () => {
+          it("returns data", async () => {
+            const apiResponse = await apiRequest("GET", "www.fakeurl.com", { requestParameter: "requestValue" });
 
-          expect(apiResponse.data).toEqual(responseData);
+            expect(apiResponse.data).toEqual(responseObject);
+          });
+
+          it("can get individual fields from returned data", async () => {
+            const apiResponse = await apiRequest<ObjectResponseData>("GET", "www.fakeurl.com", { requestParameter: "requestValue" });
+
+            expect(apiResponse.data.id).toEqual("1234");
+          });
+        });
+
+        describe("when response object is an array", () => {
+          const secondObjectInResponse = { id: "5678", count: 1 };
+
+          beforeAll(() => {
+            global.fetch = jest.fn(() => Promise.resolve(
+              {
+                json: () => Promise.resolve([responseObject, secondObjectInResponse]),
+                status: 200,
+                ok: true,
+              }),
+            ) as jest.Mock;
+          });
+
+          it("returns data", async () => {
+            const apiResponse = await apiRequest("GET", "www.fakeurl.com", { requestParameter: "requestValue" });
+
+            expect(apiResponse.data).toEqual([responseObject, secondObjectInResponse]);
+          });
+
+          it("can get individual objects from returned data", async () => {
+            const apiResponse = await apiRequest<ArrayResponseData>("GET", "www.fakeurl.com", { requestParameter: "requestValue" });
+
+            expect(apiResponse.data[0]).toEqual(responseObject);
+            expect(apiResponse.data[1]).toEqual(secondObjectInResponse);
+          });
         });
 
         it("returns status code", async () => {
@@ -47,7 +88,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: (header: string): number | undefined => (header === "Retry-After" ? 100 : undefined) },
                 }),
@@ -65,7 +106,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: (header: string): string | undefined => (header === "Retry-After" ? "100" : undefined) },
                 }),
@@ -83,7 +124,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: () => (null) },
                 }),
@@ -101,7 +142,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: () => (undefined) },
                 }),
@@ -119,7 +160,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: (header: string): string | undefined => (header === "Retry-After" ? "this is not a number" : undefined) },
                 }),
@@ -139,7 +180,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: () => (null) },
                 }),
@@ -160,7 +201,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: () => (undefined) },
                 }),
@@ -184,7 +225,7 @@ describe("ApiUtils", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() => Promise.resolve(
                 {
-                  json: () => Promise.resolve(responseData),
+                  json: () => Promise.resolve(responseObject),
                   ok: true,
                   headers: { get: () => (linkHeader) },
                 }),
