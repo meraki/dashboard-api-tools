@@ -41,7 +41,7 @@ Promise<{
   ok: true;
   statusCode: number;
   statusText: string;
-  data: string
+  data: T
 }>
 ```
 
@@ -75,8 +75,10 @@ const data = {
   payloadTemplateId: "wpt_00002",
 }
 
-apiRequest("POST", url, data)
+apiRequest<ResponseObjectType>("POST", url, data)
 ```
+Note that `ResponseObjectType` is whatever type you expect the response object from the API request to be in.
+We made this a generic as the data object can vary across endpoints.
 
 To use in a consumer of this library, you can either use `async`/`await` or promise chaining
 ##### async/await
