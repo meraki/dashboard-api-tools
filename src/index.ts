@@ -1,7 +1,7 @@
 const httpMethods = ["get", "post", "put", "delete", "options", "GET", "POST", "PUT", "DELETE", "OPTIONS"] as const;
 type HTTPMethod = typeof httpMethods[number];
 type ApiError = {
-  errors: string[] | Record<string, unknown> | string;
+  errors: string[]
   ok: false;
   statusCode: number;
   statusText: string;
