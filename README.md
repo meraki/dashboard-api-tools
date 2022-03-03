@@ -41,9 +41,11 @@ Promise<{
   ok: true;
   statusCode: number;
   statusText: string;
-  data: T
+  data: ResponseData
 }>
 ```
+Note that `data` is typed as a generic type `ResponseData`. This generic type will be passed when calling `apiRequest<ResponseData>()` and allows the consumer to set the expected data structure of the API response. Since response types vary across endpoints, we wanted to allow for flexibility in what the type of `data` should be.
+
 
 For unsuccessful API requests:
 ```
@@ -97,7 +99,7 @@ apiRequest("GET", "www.some-url.com")
   .catch((badResponse) => /* do something with badResponse.errors */);
 ```
 ### isApiError()
-For checking errors, the library also provides a type guard helper function to ensure that the errors are in the format we expect before using them.
+For checking errors, the library also provides a type guard helper function to ensure that the errors are in the format we expect before using them. It will verify that the failed response object contains an `error` field that is an array of strings.
 ```
 try {
   await apiRequest("GET", "www.bad-url.com");
