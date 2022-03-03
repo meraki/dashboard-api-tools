@@ -9,8 +9,8 @@ type ApiError = {
 type Options = {
   fetchOptions?: RequestInit | undefined;
 };
-type ApiResponse<T> = ApiMetadata & {
-  data: T;
+type ApiResponse<ResponseData> = ApiMetadata & {
+  data: ResponseData;
 };
 type ApiMetadata = {
   firstPageUrl: string | null;
@@ -58,14 +58,14 @@ const extractCustomHeaders = (response: Response): ApiMetadata => {
   };
 };
 
-const successResponse = async <T>(response: Response): Promise<ApiResponse<T>> => {
+const successResponse = async <ResponseData>(response: Response): Promise<ApiResponse<ResponseData>> => {
   const responseJson = response.json();
   const responseMetadata = extractCustomHeaders(response);
 
   return Promise.all([responseJson, responseMetadata]).then(([data, metadata]) => ({ data, ...metadata }));
 };
 
-const failureResponse = async <T>(response: Response): Promise<ApiResponse<T>> => {
+const failureResponse = async <ResponseData>(response: Response): Promise<ApiResponse<ResponseData>> => {
   let errors;
 
   try {
@@ -84,12 +84,12 @@ const failureResponse = async <T>(response: Response): Promise<ApiResponse<T>> =
   });
 };
 
-const apiRequest = async <T>(
+const apiRequest = async <ResponseData>(
   method: HTTPMethod,
   url: string,
   data?: Record<string, unknown> | undefined,
   options?: Options,
-): Promise<ApiResponse<T>> => {
+): Promise<ApiResponse<ResponseData>> => {
   const fetchOptions: RequestInit = {
     method: method,
     headers: { "Content-Type": "application/json" },
@@ -104,7 +104,7 @@ const apiRequest = async <T>(
 
   const response = await fetch(url, fetchOptions);
 
-  return response.ok ? successResponse<T>(response) : failureResponse<T>(response);
+  return response.ok ? successResponse<ResponseData>(response) : failureResponse<ResponseData>(response);
 };
 
 const isApiError = (response: unknown): response is ApiError => {
