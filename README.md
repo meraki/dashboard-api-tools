@@ -113,6 +113,27 @@ try {
 }
 ```
 
+### Pagination
+In the future, this library would ideally handle all re-requests required for pagination. For now, to keep backwards compatibility with the original library, the consumers will be in charge of making the necessary number of calls to apiRequest while the library will provide all metadata required for pagination (`firstPage`, `prevPage`, `nextPage`, `lastPage`)
+```
+const paginatedFetch = async (url) => {
+  let apiResp;
+
+  try {
+    apiResp = await apiRequest("GET", url);
+  } catch () {
+    throw new Error("API paginated fetch failed");
+  }
+
+  const { data, nextPageUrl } = apiResp;
+  dispatch(actions.doSomethingWithData(data))
+
+  if (nextPageUrl) {
+    await paginatedFetch(nextPageUrl);
+  }
+}
+```
+
 # Contributing
 After making changes to this project, update the version number in `package.json` and create your Merge Request.
 After running automatic steps, the ci pipeline for this job will provide a manual step called "publish".
