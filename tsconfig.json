@@ -11,5 +11,6 @@
     "declaration": true,
     "noImplicitAny": true,
     "exactOptionalPropertyTypes": true,
+    "jsx": "react-jsx"
   }
 }

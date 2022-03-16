@@ -132,6 +132,43 @@ const paginatedFetch = async (url) => {
     await paginatedFetch(nextPageUrl);
   }
 }
+
+```
+
+### useApiRequest()
+React hook for interacting with Meraki's public API. It is a wrapper around `useState` and `useEffect` and uses `isApiError()` to make API requests and format the responses.
+
+It has a method signature that accepts a generic type that represents the expected response object type, as well as two arguments:
+1.) An object with a the shape identical to the arguments provided for `isApiError`
+2.) A list of dependencies that, when changed, will trigger this hook to run. This is similar to how [React's useEffect hook](https://reactjs.org/docs/hooks-effect.html) works
+
+It returns 3 values:
+`response`: The formatted response fromt the API. It will be `undefined` if request was not successful.
+`errors`: Any errors returned from API response. It will be `undefined` if request was successful. The hook uses `isApiError()` to ensure that the errors returned are wrapped in an array of strings.
+`isFetching`: Status indicating whether the API request completed or not
+
+```
+const ComponentUsingHook = () => {
+  const [response, errors, isFetching] = useApiRequest<SuccessfulResponse>({method: "GET", url: "www.fake.url.com" }, []);
+
+  return (
+    <>
+      {
+        isFetching && <div>Loading</div>
+      }
+      {
+        !isFetching && response && <div>{response.data.someValueFromResponse}</div>
+      }
+      {
+        !isFetching && errors && <div>
+          {
+            errors.map((error, index) => <div key={index}>{error}</div>)
+          }
+        </div>
+      }
+    </>
+  );
+};
 ```
 
 # Contributing

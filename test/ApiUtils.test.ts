@@ -1,7 +1,6 @@
 import { apiRequest, isApiError } from "../src";
 
 describe("ApiUtils", () => {
-
   describe("apiRequest", () => {
 
     afterEach(() => {
