@@ -24,6 +24,12 @@ type ApiMetadata = {
   statusCode: number;
   statusText: string;
 };
+export type ApiRequestParams = {
+  method: HTTPMethod;
+  url: string;
+  data?: Record<string, unknown> | undefined;
+  options?: Options;
+}
 type PaginationHeaderLink = { url: string; rel: string; }
 
 const extractUrlFromLinkHeader = (linkHeader: string, targetRel: string): string | null => {
@@ -120,4 +126,44 @@ const isApiError = (response: unknown): response is ApiError => {
   );
 };
 
-export { apiRequest, isApiError };
+const makePaginatedRequest = async <ResponseData>(
+  dataHandler: (data: ResponseData) => void,
+  errorHandler: (errors: string[]) => void,
+  apiRequestParams: ApiRequestParams,
+  maxRequests: number,
+  requestCount: number,
+) => {
+  if(requestCount >= maxRequests) {
+    return;
+  }
+
+  try {
+    const { method, url } = apiRequestParams;
+    const apiResp = await apiRequest<ResponseData>(method, url);
+
+    const { data: responseData, nextPageUrl } = apiResp;
+
+    dataHandler(responseData);
+
+    if (nextPageUrl) {
+      await makePaginatedRequest<ResponseData>(dataHandler, errorHandler, apiRequestParams, maxRequests, ++requestCount);
+    }
+  } catch (badResponse) {
+    if(isApiError(badResponse)) {
+      errorHandler(badResponse.errors);
+    } else {
+      throw new Error("Paginated API request failed with unknown error.");
+    }
+  }
+};
+
+const paginatedApiRequest = async <ResponseData>(
+  dataHandler: (data: ResponseData) => void,
+  errorHandler: (errors: string[]) => void,
+  apiRequestParams: ApiRequestParams,
+  maxRequests = 9999,
+) => {
+  await makePaginatedRequest(dataHandler, errorHandler, apiRequestParams, maxRequests, 0);
+};
+
+export { apiRequest, isApiError, paginatedApiRequest };

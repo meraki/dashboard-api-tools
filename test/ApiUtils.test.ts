@@ -1,4 +1,4 @@
-import { apiRequest, isApiError } from "../src";
+import { apiRequest, isApiError, paginatedApiRequest } from "../src";
 
 describe("ApiUtils", () => {
   describe("apiRequest", () => {
@@ -418,5 +418,78 @@ describe("ApiUtils", () => {
       });
     });
   });
-});
 
+  describe  ("paginatedApiRequest", () => {
+    describe("successful response", () => {
+      let count: number;
+      let responseObject: Record<string, unknown>;
+      const expectedCalls = 5;
+
+      const linkHeader = (startingAfter: number) => `</api/v0/foos?startingAfter=0>; rel=first, </api/v0/foos?startingAfter=${startingAfter + 1}>; rel=next`;
+
+      beforeEach(() => {
+        count = 0;
+        responseObject = { id: "1234" };
+
+        global.fetch = jest.fn(() => Promise.resolve(
+          {
+            json: () => {
+              count++;
+              return Promise.resolve(responseObject);
+            },
+            status: 200,
+            ok: true,
+            headers: { get: (): string | undefined => (count < expectedCalls ? linkHeader(count) : undefined) },
+          }),
+        ) as jest.Mock;
+      });
+
+      it("calls provided dataHandler function with response data", async () => {
+        const dataHandler = jest.fn();
+
+        await paginatedApiRequest(dataHandler, jest.fn(), {method: "GET", url: "www.fakeurl.com"});
+
+        expect(dataHandler).toHaveBeenCalledWith(responseObject);
+      });
+
+      it("calls provided dataHandler function for each successful request", async () => {
+        const dataHandler = jest.fn();
+
+        await paginatedApiRequest(dataHandler, jest.fn(), {method: "GET", url: "www.fakeurl.com"});
+
+        expect(dataHandler).toHaveBeenCalledTimes(expectedCalls);
+      });
+
+      it("stops making requests when provided maxRequests threshold is reached", async () => {
+        const dataHandler = jest.fn();
+        const maxRequests = 3;
+
+        await paginatedApiRequest(dataHandler, jest.fn(), {method: "GET", url: "www.fakeurl.com"}, maxRequests);
+
+        expect(fetch).toHaveBeenCalledTimes(maxRequests);
+        expect(dataHandler).toHaveBeenCalledTimes(maxRequests);
+      });
+    });
+  });
+
+  describe("unsuccessful response", () => {
+    beforeEach(() => {
+      global.fetch = jest.fn(() => Promise.resolve(
+        {
+          status: 500,
+          statusText: "Internal server error",
+          json: () => ({ errors: ["first error", "second error"] }),
+          ok: false,
+        }),
+      ) as jest.Mock;
+    });
+
+    it("calls provided errorHandler function for each unsuccessful request", async () => {
+      const errorHandler = jest.fn();
+
+      await paginatedApiRequest(jest.fn(), errorHandler, {method: "GET", url: "www.fakeurl.com"});
+
+      expect(errorHandler).toHaveBeenCalledWith(["first error", "second error"]);
+    });
+  });
+});

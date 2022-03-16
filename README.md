@@ -86,7 +86,7 @@ To use in a consumer of this library, you can either use `async`/`await` or prom
 ##### async/await
 ```
 try {
-  await apiRequest("GET", "www.some-url.com");
+  await apiRequest("GET", "www.some-url.com/api/v1/endpoint");
   /* carry on */
 } catch (badResponse) {
   /* do something with badResponse.errors */
@@ -94,7 +94,7 @@ try {
 ```
 ##### promise chaining
 ```
-apiRequest("GET", "www.some-url.com")
+apiRequest("GET", "www.some-url.com/api/v1/endpoint")
   .then(() => /* carry on */)
   .catch((badResponse) => /* do something with badResponse.errors */);
 ```
@@ -102,7 +102,7 @@ apiRequest("GET", "www.some-url.com")
 For checking errors, the library also provides a type guard helper function to ensure that the errors are in the format we expect before using them. It will verify that the failed response object contains an `error` field that is an array of strings.
 ```
 try {
-  await apiRequest("GET", "www.bad-url.com");
+  await apiRequest("GET", "www.some-url.com/api/v1/endpoint");
   /* carry on */
 } catch (badResponse) {
   if(isApiError(badResponse)) {
@@ -113,33 +113,50 @@ try {
 }
 ```
 
-### Pagination
-In the future, this library would ideally handle all re-requests required for pagination. For now, to keep backwards compatibility with the original library, the consumers will be in charge of making the necessary number of calls to apiRequest while the library will provide all metadata required for pagination (`firstPage`, `prevPage`, `nextPage`, `lastPage`)
+### paginatedApiRequest
+This function will make paginated requests to the provided URL based on the `perPage` query parameter. It makes a request to the given URL, then makes successive requests to URL's provided in the `Link` header from the response. See [docs on pagination](https://docs.ikarem.io/display/ENG/Pagination+in+the+Dashboard+API) for more details on the `Link` header.
+
+It accepts functions that will be called for each successful response as well as any errors from unsuccessful responses.
+
+It also accepts a parameter to set the maximum number of requests allowed for this endpoint to protect against abnormally large or infinite number of successive requests.
+
+The method signature accepts the above 3 values as well as an object with a shape identical to the arguments provided for `apiRequest`
+
 ```
-const paginatedFetch = async (url) => {
-  let apiResp;
-
-  try {
-    apiResp = await apiRequest("GET", url);
-  } catch () {
-    throw new Error("API paginated fetch failed");
-  }
-
-  const { data, nextPageUrl } = apiResp;
-  dispatch(actions.doSomethingWithData(data))
-
-  if (nextPageUrl) {
-    await paginatedFetch(nextPageUrl);
-  }
+type ApiRequestParams = {
+  method: HTTPMethod;
+  url: string;
+  data?: Record<string, unknown> | undefined;
+  options?: Options;
 }
 
+const paginatedApiRequest = async <ResponseData>(
+  dataHandler: (data: ResponseData) => void,
+  errorHandler: (errors: string[]) => void,
+  apiRequestParams: ApiRequestParams,
+  maxRequests: number,
+  requestCount: number,
+)
+```
+
+##### Usage
+```
+const storeClientsInRedux = (clients) => (dispatch) => {
+  dispatch(actions.updateClients(clients));
+};
+
+const storeErrorsInRedux = (errors) => (dispatch) => {
+  dispatch(actions.clientFetchFailed(errors));
+};
+
+await paginatedApiRequest(storeClientsInRedux, storeErrorsInRedux, {method: "GET", url: "www.some-url.com/api/v1/endpoint}, 100);
 ```
 
 ### useApiRequest()
 React hook for interacting with Meraki's public API. It is a wrapper around `useState` and `useEffect` and uses `isApiError()` to make API requests and format the responses.
 
 It has a method signature that accepts a generic type that represents the expected response object type, as well as two arguments:
-1.) An object with a the shape identical to the arguments provided for `isApiError`
+1.) An object with a the shape identical to the arguments provided for `apiRequest`
 2.) A list of dependencies that, when changed, will trigger this hook to run. This is similar to how [React's useEffect hook](https://reactjs.org/docs/hooks-effect.html) works
 
 It returns 3 values:
@@ -149,7 +166,7 @@ It returns 3 values:
 
 ```
 const ComponentUsingHook = () => {
-  const [response, errors, isFetching] = useApiRequest<SuccessfulResponse>({method: "GET", url: "www.fake.url.com" }, []);
+  const [response, errors, isFetching] = useApiRequest<SuccessfulResponse>({method: "GET", url: "www.some-url.com/api/v1/endpoint" }, []);
 
   return (
     <>
