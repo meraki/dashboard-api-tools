@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
-import { apiRequest, isApiError, HTTPMethod, Options, ApiResponse } from "../index";
+import { ApiRequestParams } from "../apiUtils";
+import { apiRequest, isApiError, ApiResponse } from "../index";
 
 type ApiResponseMetadata<ResponseData> = [ApiResponse<ResponseData> | undefined, string[] | undefined, boolean]
-type ApiRequestParams = {
-  method: HTTPMethod;
-  url: string;
-  data?: Record<string, unknown> | undefined;
-  options?: Options;
-}
 
 export const useApiRequest = <ResponseData>(apiRequestParams: ApiRequestParams, dependencies = []): ApiResponseMetadata<ResponseData> => {
   const {method, url, data, options} = apiRequestParams;
