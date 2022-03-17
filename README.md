@@ -134,9 +134,8 @@ const paginatedApiRequest = async <ResponseData>(
   dataHandler: (data: ResponseData) => void,
   errorHandler: (errors: string[]) => void,
   apiRequestParams: ApiRequestParams,
-  maxRequests: number,
-  requestCount: number,
-)
+  maxRequests = 9999,
+) => {
 ```
 
 ##### Usage
