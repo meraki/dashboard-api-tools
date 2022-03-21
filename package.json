@@ -12,6 +12,7 @@
     "test": "jest",
     "build": "tsc --build",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx test/ src/",
+    "prettierFormat": "prettier --config .prettierrc.json --write .",
     "publishPackage": "tsc --build && npm publish --registry https://artifactory.ikarem.io/artifactory/api/npm/meraki-npm-packages/"
   },
   "repository": {
@@ -29,7 +30,10 @@
     "@typescript-eslint/eslint-plugin": "^5.11.0",
     "@typescript-eslint/parser": "^5.11.0",
     "eslint": "^8.8.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.5.1",
+    "prettier": "^2.6.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "ts-jest": "^27.1.3",

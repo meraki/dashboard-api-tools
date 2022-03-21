@@ -2,24 +2,23 @@ import { apiRequest, isApiError, paginatedApiRequest } from "../src";
 
 describe("ApiUtils", () => {
   describe("apiRequest", () => {
-
     afterEach(() => {
       (global.fetch as jest.Mock).mockClear();
     });
 
     describe("success", () => {
       type ObjectResponseData = {
-        id: string,
-        count: number
-      }
-      type ArrayResponseData = Array<ObjectResponseData>
+        id: string;
+        count: number;
+      };
+      type ArrayResponseData = Array<ObjectResponseData>;
 
       const responseObject = { id: "1234", count: 23 };
 
       describe("parses metadata", () => {
         beforeAll(() => {
-          global.fetch = jest.fn(() => Promise.resolve(
-            {
+          global.fetch = jest.fn(() =>
+            Promise.resolve({
               json: () => Promise.resolve(responseObject),
               status: 200,
               ok: true,
@@ -41,7 +40,9 @@ describe("ApiUtils", () => {
           });
 
           it("can get individual fields from returned data", async () => {
-            const apiResponse = await apiRequest<ObjectResponseData>("GET", "www.fakeurl.com", { requestParameter: "requestValue" });
+            const apiResponse = await apiRequest<ObjectResponseData>("GET", "www.fakeurl.com", {
+              requestParameter: "requestValue",
+            });
 
             expect(apiResponse.data.id).toEqual("1234");
           });
@@ -51,8 +52,8 @@ describe("ApiUtils", () => {
           const secondObjectInResponse = { id: "5678", count: 1 };
 
           beforeAll(() => {
-            global.fetch = jest.fn(() => Promise.resolve(
-              {
+            global.fetch = jest.fn(() =>
+              Promise.resolve({
                 json: () => Promise.resolve([responseObject, secondObjectInResponse]),
                 status: 200,
                 ok: true,
@@ -67,7 +68,9 @@ describe("ApiUtils", () => {
           });
 
           it("can get individual objects from returned data", async () => {
-            const apiResponse = await apiRequest<ArrayResponseData>("GET", "www.fakeurl.com", { requestParameter: "requestValue" });
+            const apiResponse = await apiRequest<ArrayResponseData>("GET", "www.fakeurl.com", {
+              requestParameter: "requestValue",
+            });
 
             expect(apiResponse.data[0]).toEqual(responseObject);
             expect(apiResponse.data[1]).toEqual(secondObjectInResponse);
@@ -85,11 +88,13 @@ describe("ApiUtils", () => {
         describe("Retry-After hedaer", () => {
           describe("when header is a number", () => {
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: (header: string): number | undefined => (header === "Retry-After" ? 100 : undefined) },
+                  headers: {
+                    get: (header: string): number | undefined => (header === "Retry-After" ? 100 : undefined),
+                  },
                 }),
               ) as jest.Mock;
             });
@@ -103,11 +108,13 @@ describe("ApiUtils", () => {
 
           describe("when header is a stringified number", () => {
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: (header: string): string | undefined => (header === "Retry-After" ? "100" : undefined) },
+                  headers: {
+                    get: (header: string): string | undefined => (header === "Retry-After" ? "100" : undefined),
+                  },
                 }),
               ) as jest.Mock;
             });
@@ -121,11 +128,11 @@ describe("ApiUtils", () => {
 
           describe("when header is null", () => {
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: () => (null) },
+                  headers: { get: () => null },
                 }),
               ) as jest.Mock;
             });
@@ -139,11 +146,11 @@ describe("ApiUtils", () => {
 
           describe("when header is undefined", () => {
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: () => (undefined) },
+                  headers: { get: () => undefined },
                 }),
               ) as jest.Mock;
             });
@@ -157,11 +164,14 @@ describe("ApiUtils", () => {
 
           describe("when header is NaN string", () => {
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: (header: string): string | undefined => (header === "Retry-After" ? "this is not a number" : undefined) },
+                  headers: {
+                    get: (header: string): string | undefined =>
+                      header === "Retry-After" ? "this is not a number" : undefined,
+                  },
                 }),
               ) as jest.Mock;
             });
@@ -177,11 +187,11 @@ describe("ApiUtils", () => {
         describe("Link header (pagination)", () => {
           describe("when header is null", () => {
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: () => (null) },
+                  headers: { get: () => null },
                 }),
               ) as jest.Mock;
             });
@@ -198,11 +208,11 @@ describe("ApiUtils", () => {
 
           describe("when header is undefined", () => {
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: () => (undefined) },
+                  headers: { get: () => undefined },
                 }),
               ) as jest.Mock;
             });
@@ -222,11 +232,11 @@ describe("ApiUtils", () => {
               "<firstPageUrl>; rel=first, <lastPageUrl>; rel=last, <nextPageUrl>; rel=next, <prevPageUrl>; rel=prev";
 
             beforeAll(() => {
-              global.fetch = jest.fn(() => Promise.resolve(
-                {
+              global.fetch = jest.fn(() =>
+                Promise.resolve({
                   json: () => Promise.resolve(responseObject),
                   ok: true,
-                  headers: { get: () => (linkHeader) },
+                  headers: { get: () => linkHeader },
                 }),
               ) as jest.Mock;
             });
@@ -249,8 +259,8 @@ describe("ApiUtils", () => {
     describe("failure", () => {
       describe("response doesn't have text", () => {
         beforeAll(() => {
-          global.fetch = jest.fn(() => Promise.resolve(
-            {
+          global.fetch = jest.fn(() =>
+            Promise.resolve({
               status: 500,
               statusText: "Internal server error",
               ok: false,
@@ -272,8 +282,8 @@ describe("ApiUtils", () => {
 
       describe("response is json", () => {
         beforeAll(() => {
-          global.fetch = jest.fn(() => Promise.resolve(
-            {
+          global.fetch = jest.fn(() =>
+            Promise.resolve({
               status: 500,
               statusText: "Internal server error",
               json: () => ({ errors: ["custom error"] }),
@@ -380,8 +390,8 @@ describe("ApiUtils", () => {
   describe("integration between apiRequest and isApiError", () => {
     describe("with errors", () => {
       beforeAll(() => {
-        global.fetch = jest.fn(() => Promise.resolve(
-          {
+        global.fetch = jest.fn(() =>
+          Promise.resolve({
             status: 500,
             statusText: "bad request",
             json: () => ({ errors: ["this is a good error format"] }),
@@ -401,8 +411,8 @@ describe("ApiUtils", () => {
 
     describe("with no errors", () => {
       beforeAll(() => {
-        global.fetch = jest.fn(() => Promise.resolve(
-          {
+        global.fetch = jest.fn(() =>
+          Promise.resolve({
             status: 200,
             statusText: "good request",
             json: () => ({ somethingThatIsNotErrors: ["this is NOT an error!"] }),
@@ -419,20 +429,21 @@ describe("ApiUtils", () => {
     });
   });
 
-  describe  ("paginatedApiRequest", () => {
+  describe("paginatedApiRequest", () => {
     describe("successful response", () => {
       let count: number;
       let responseObject: Record<string, unknown>;
       const expectedCalls = 5;
 
-      const linkHeader = (startingAfter: number) => `</api/v0/foos?startingAfter=0>; rel=first, </api/v0/foos?startingAfter=${startingAfter + 1}>; rel=next`;
+      const linkHeader = (startingAfter: number) =>
+        `</api/v0/foos?startingAfter=0>; rel=first, </api/v0/foos?startingAfter=${startingAfter + 1}>; rel=next`;
 
       beforeEach(() => {
         count = 0;
         responseObject = { id: "1234" };
 
-        global.fetch = jest.fn(() => Promise.resolve(
-          {
+        global.fetch = jest.fn(() =>
+          Promise.resolve({
             json: () => {
               count++;
               return Promise.resolve(responseObject);
@@ -447,7 +458,7 @@ describe("ApiUtils", () => {
       it("calls provided dataHandler function with response data", async () => {
         const dataHandler = jest.fn();
 
-        await paginatedApiRequest(dataHandler, jest.fn(), {method: "GET", url: "www.fakeurl.com"});
+        await paginatedApiRequest(dataHandler, jest.fn(), { method: "GET", url: "www.fakeurl.com" });
 
         expect(dataHandler).toHaveBeenCalledWith(responseObject);
       });
@@ -455,7 +466,7 @@ describe("ApiUtils", () => {
       it("calls provided dataHandler function for each successful request", async () => {
         const dataHandler = jest.fn();
 
-        await paginatedApiRequest(dataHandler, jest.fn(), {method: "GET", url: "www.fakeurl.com"});
+        await paginatedApiRequest(dataHandler, jest.fn(), { method: "GET", url: "www.fakeurl.com" });
 
         expect(dataHandler).toHaveBeenCalledTimes(expectedCalls);
       });
@@ -464,7 +475,7 @@ describe("ApiUtils", () => {
         const dataHandler = jest.fn();
         const maxRequests = 3;
 
-        await paginatedApiRequest(dataHandler, jest.fn(), {method: "GET", url: "www.fakeurl.com"}, maxRequests);
+        await paginatedApiRequest(dataHandler, jest.fn(), { method: "GET", url: "www.fakeurl.com" }, maxRequests);
 
         expect(fetch).toHaveBeenCalledTimes(maxRequests);
         expect(dataHandler).toHaveBeenCalledTimes(maxRequests);
@@ -474,8 +485,8 @@ describe("ApiUtils", () => {
 
   describe("unsuccessful response", () => {
     beforeEach(() => {
-      global.fetch = jest.fn(() => Promise.resolve(
-        {
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
           status: 500,
           statusText: "Internal server error",
           json: () => ({ errors: ["first error", "second error"] }),
@@ -487,7 +498,7 @@ describe("ApiUtils", () => {
     it("calls provided errorHandler function for each unsuccessful request", async () => {
       const errorHandler = jest.fn();
 
-      await paginatedApiRequest(jest.fn(), errorHandler, {method: "GET", url: "www.fakeurl.com"});
+      await paginatedApiRequest(jest.fn(), errorHandler, { method: "GET", url: "www.fakeurl.com" });
 
       expect(errorHandler).toHaveBeenCalledWith(["first error", "second error"]);
     });

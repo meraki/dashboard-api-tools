@@ -7,30 +7,28 @@ const mockedApiRequest = jest.mocked(apiRequest) as jest.Mock;
 const mockedIsApiError = jest.mocked(isApiError) as jest.Mock;
 
 type SuccessfulResponse = {
-  id: string
-}
+  id: string;
+};
 
 describe("useApiRequest", () => {
-
   const ComponentUsingHook = () => {
-    const [response, errors, isFetching] = useApiRequest<SuccessfulResponse>({method: "GET", url: "www.fake.url.com" }, []);
+    const [response, errors, isFetching] = useApiRequest<SuccessfulResponse>(
+      { method: "GET", url: "www.fake.url.com" },
+      [],
+    );
 
     return (
       <div>
-        {
-          isFetching && <div>Loading</div>
-        }
-        {
-          !isFetching && response && <div>{response.data?.id}</div>
-        }
-        {
-          !isFetching && errors && <div>
+        {isFetching && <div>Loading</div>}
+        {!isFetching && response && <div>{response.data?.id}</div>}
+        {!isFetching && errors && (
+          <div>
             <div>So many errors</div>
-            {
-              errors.map((error, index) => <div key={index}>{error}</div>)
-            }
+            {errors.map((error, index) => (
+              <div key={index}>{error}</div>
+            ))}
           </div>
-        }
+        )}
       </div>
     );
   };
@@ -54,10 +52,10 @@ describe("useApiRequest", () => {
           mockedIsApiError.mockReturnValueOnce(true);
           mockedApiRequest.mockRejectedValueOnce({ errors: ["first error", "second error"] });
         });
-    
+
         it("returns errors", async () => {
           const { queryByText } = render(<ComponentUsingHook />);
-    
+
           await waitFor(() => expect(queryByText("Loading")).toBeNull());
           expect(queryByText("Loading")).toBeNull();
 
@@ -70,12 +68,12 @@ describe("useApiRequest", () => {
       describe("isApiError() returns false", () => {
         beforeEach(() => {
           mockedIsApiError.mockReturnValueOnce(false);
-          mockedApiRequest.mockRejectedValueOnce({ errors: { "message": "something went wrong" } });
+          mockedApiRequest.mockRejectedValueOnce({ errors: { message: "something went wrong" } });
         });
-    
+
         it("returns errors", async () => {
           const { queryByText } = render(<ComponentUsingHook />);
-    
+
           await waitFor(() => expect(queryByText("Loading")).toBeNull());
           expect(queryByText("Loading")).toBeNull();
 
@@ -84,15 +82,15 @@ describe("useApiRequest", () => {
         });
       });
     });
-  
+
     describe("success case", () => {
       beforeEach(() => {
         mockedApiRequest.mockResolvedValueOnce({ ok: true, data: { id: "1234" } });
       });
-  
+
       it("returns response", async () => {
         const { queryByText } = render(<ComponentUsingHook />);
-  
+
         await waitFor(() => expect(queryByText("Loading")).toBeNull());
         expect(queryByText("Loading")).toBeNull();
 
