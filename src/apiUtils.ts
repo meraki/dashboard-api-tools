@@ -1,6 +1,6 @@
 const httpMethods = ["get", "post", "put", "delete", "options", "GET", "POST", "PUT", "DELETE", "OPTIONS"] as const;
 export type HTTPMethod = typeof httpMethods[number];
-type ApiError = {
+export type ApiError = {
   errors: string[];
   ok: false;
   statusCode: number;
