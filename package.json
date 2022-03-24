@@ -1,6 +1,6 @@
 {
   "name": "@dashboard-api/api-utils",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "Typescript SDK for interacting with Meraki's public API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,6 +25,7 @@
   "author": "Dashboard API Team",
   "license": "ISC",
   "devDependencies": {
+    "@reduxjs/toolkit": "^1.7.1",
     "@testing-library/react": "^12.1.3",
     "@types/jest": "^27.4.0",
     "@typescript-eslint/eslint-plugin": "^5.11.0",
@@ -42,7 +43,9 @@
   "publishConfig": {
     "registry": "https://artifactory.ikarem.io/artifactory/api/npm/meraki-npm-packages/"
   },
-  "dependencies": {},
+  "peerDependencies": {
+    "@reduxjs/toolkit": "^1.7.1"
+  },
   "files": [
     "dist"
   ]
