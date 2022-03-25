@@ -85,7 +85,7 @@ describe("ApiUtils", () => {
       });
 
       describe("headers", () => {
-        describe("Retry-After hedaer", () => {
+        describe("Retry-After header", () => {
           describe("when header is a number", () => {
             beforeAll(() => {
               global.fetch = jest.fn(() =>
@@ -316,6 +316,86 @@ describe("ApiUtils", () => {
             expect(badResponse.errors).toEqual([]);
           }
         });
+      });
+    });
+
+    describe("rate limit", () => {
+      const responseObject = { id: "1234", count: 23 };
+      const retrySec = 1;
+      const successfulResponse = {
+        json: () => Promise.resolve(responseObject),
+        status: 200,
+        ok: true,
+      };
+      const retryHeader = {
+        get: (header: string): number | undefined => (header === "Retry-After" ? retrySec : undefined),
+      };
+      const rateLimitedResponse = (useHeader = true) => {
+        return {
+          json: () => ({ errors: ["Rate limit error"] }),
+          status: 429,
+          ok: false,
+          headers: useHeader ? retryHeader : undefined,
+        };
+      };
+
+      beforeEach(() => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        global.setTimeout = jest.fn((f) => f());
+      });
+
+      afterEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it("fails after 5 retries when 429 is returned each time", async () => {
+        global.fetch = jest.fn().mockResolvedValue(rateLimitedResponse()) as jest.Mock;
+        try {
+          await apiRequest("GET", "www.rate_limit.com");
+        } catch (badResponse: any) {
+          expect(fetch).toHaveBeenCalledTimes(6);
+          expect(badResponse.errors).toEqual(["Rate limit error"]);
+          expect(badResponse.statusCode).toEqual(429);
+        }
+      });
+
+      it("resolves 200 response after 2 retries", async () => {
+        global.fetch = jest
+          .fn()
+          .mockResolvedValueOnce(rateLimitedResponse())
+          .mockResolvedValueOnce(rateLimitedResponse())
+          .mockResolvedValueOnce(successfulResponse) as jest.Mock;
+        const apiResponse = await apiRequest("GET", "www.rate_limit.com");
+        expect(fetch).toHaveBeenCalledTimes(3);
+        expect(apiResponse.ok).toBe(true);
+        expect(apiResponse.data).toEqual(responseObject);
+      });
+
+      it("follows Retry-After header if it presents", async () => {
+        Math.random = jest.fn(() => 0);
+        global.fetch = jest
+          .fn()
+          .mockResolvedValueOnce(rateLimitedResponse())
+          .mockResolvedValueOnce(successfulResponse) as jest.Mock;
+        await apiRequest("GET", "www.rate_limit.com");
+
+        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), retrySec * 1000);
+      });
+
+      it("does exponential backoff if the 'Retry-After' header is not present", async () => {
+        Math.random = jest.fn(() => 0);
+        global.fetch = jest
+          .fn()
+          .mockResolvedValueOnce(rateLimitedResponse(false))
+          .mockResolvedValueOnce(rateLimitedResponse(false))
+          .mockResolvedValueOnce(rateLimitedResponse(false))
+          .mockResolvedValueOnce(successfulResponse) as jest.Mock;
+        await apiRequest("GET", "www.rate_limit.com");
+
+        expect(setTimeout).toHaveBeenNthCalledWith(1, expect.any(Function), 1.5 * 1000);
+        expect(setTimeout).toHaveBeenNthCalledWith(2, expect.any(Function), 1.5 ** 2 * 1000);
+        expect(setTimeout).toHaveBeenNthCalledWith(3, expect.any(Function), 1.5 ** 3 * 1000);
       });
     });
   });
