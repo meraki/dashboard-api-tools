@@ -104,11 +104,22 @@ const apiRequest = async <ResponseData>(
     ...options?.fetchOptions,
   };
 
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  const totalRetries = 5;
+  let attempt = 0;
+
   if (typeof data !== "undefined") {
     fetchOptions.body = JSON.stringify(data);
   }
 
-  const response = await fetch(url, fetchOptions);
+  let response = await fetch(url, fetchOptions);
+
+  while (response.status === 429 && attempt < totalRetries) {
+    const retrySec: number = extractCustomHeaders(response).retryAfter || 1.5 ** (attempt + 1);
+    await sleep((retrySec + Math.random()) * 1000);
+    response = await fetch(url, fetchOptions);
+    attempt += 1;
+  }
 
   return response.ok ? successResponse<ResponseData>(response) : failureResponse<ResponseData>(response);
 };
