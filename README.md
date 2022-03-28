@@ -5,11 +5,14 @@ Typescript SDK for interacting with Meraki's public API.
 The goal is to create a library that is used across Meraki applications that need to interact with our public API. We want a consistent pattern for doing this that still supports Meraki's API features.
 - Supports our [pagination](https://docs.ikarem.io/display/ENG/Pagination+in+the+Dashboard+API) that uses Link header
 - Supports error handling for our API's standard error responses
-
-Features coming soon:
-- [Action Batches](https://docs.ikarem.io/display/ENG/Actions%2C+Entities%2C+and+Batches) libraries this code needs to be ported over from `manage` to this package
+- Strongly typed response objects
 - React hook to use `apiResponse`
 - Integration with [React Toolkit Query](https://docs.ikarem.io/display/EngMSTeam/How+to%3A+rtk-query+and+mkiredux)
+- Retries on 429 responses
+
+Features coming soon:
+- Pagination for more complex cases where interaction is required between each request (going backwards, going to a specific page)
+- [Action Batches](https://docs.ikarem.io/display/ENG/Actions%2C+Entities%2C+and+Batches) libraries this code needs to be ported over from `manage` to this package
 - Support for handling JSON error responses
 
 For more information, please see [these docs](https://docs.ikarem.io/display/ENG/Javascript+SDK+for+Making+API+Requests).
