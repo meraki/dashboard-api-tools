@@ -8,7 +8,16 @@ type ApiError = {
 };
 export type Options = {
   fetchOptions?: RequestInit | undefined;
+  auth?: {
+    apiKey?: string;
+    csrfToken?: string;
+  };
 };
+type AuthHeaders = {
+  "X-CSRF-TOKEN"?: string;
+  "X-Cisco-Meraki-API-Key"?: string;
+};
+
 export type ApiResponse<ResponseData> = ApiMetadata & {
   data: ResponseData;
 };
@@ -96,9 +105,19 @@ const apiRequest = async <ResponseData>(
   data?: Record<string, unknown> | undefined,
   options?: Options,
 ): Promise<ApiResponse<ResponseData>> => {
+  const authHeaders: AuthHeaders = {};
+
+  if (options?.auth?.csrfToken) {
+    authHeaders["X-CSRF-TOKEN"] = options.auth.csrfToken;
+  }
+
+  if (options?.auth?.apiKey) {
+    authHeaders["X-Cisco-Meraki-API-Key"] = options.auth.apiKey;
+  }
+
   const fetchOptions: RequestInit = {
     method: method,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders },
     redirect: "follow",
     referrerPolicy: "strict-origin-when-cross-origin",
     ...options?.fetchOptions,
