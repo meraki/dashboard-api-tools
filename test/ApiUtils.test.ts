@@ -253,6 +253,57 @@ describe("ApiUtils", () => {
           });
         });
       });
+      describe("Auth Headers", () => {
+        describe("when csrfToken is passed in", () => {
+          const nonGetOptions = {
+            fetchOptions: {},
+            auth: {
+              csrfToken: "banana",
+            },
+          };
+
+          it("sets the headers with X-CSRF-TOKEN", async () => {
+            await apiRequest("POST", "www.fakeurl.com", {}, nonGetOptions);
+            const spiedFetch = jest.spyOn(global, "fetch");
+            expect(spiedFetch.mock.calls[0][1]).toEqual({
+              body: "{}",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "banana",
+              },
+              method: "POST",
+              redirect: "follow",
+              referrerPolicy: "strict-origin-when-cross-origin",
+            });
+          });
+        });
+
+        describe("when apiKey is passed in", () => {
+          const nonGetOptions = {
+            fetchOptions: {},
+            auth: {
+              apiKey: "banana",
+            },
+          };
+
+          it("sets the headers with X-Cisco-Meraki-API-Key", async () => {
+            await apiRequest("POST", "www.fakeurl.com", {}, nonGetOptions);
+            const spiedFetch = jest.spyOn(global, "fetch");
+            expect(spiedFetch.mock.calls[0][1]).toEqual({
+              body: "{}",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "X-Cisco-Meraki-API-Key": "banana",
+              },
+              method: "POST",
+              redirect: "follow",
+              referrerPolicy: "strict-origin-when-cross-origin",
+            });
+          });
+        });
+      });
     });
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
