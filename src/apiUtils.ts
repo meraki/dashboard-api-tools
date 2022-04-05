@@ -74,10 +74,17 @@ const extractCustomHeaders = (response: Response): ApiMetadata => {
 };
 
 const successResponse = async <ResponseData>(response: Response): Promise<ApiResponse<ResponseData>> => {
-  const responseJson = response.json();
+  let responseData;
+
+  try {
+    responseData = await response.json();
+  } catch {
+    responseData = {};
+  }
+
   const responseMetadata = extractCustomHeaders(response);
 
-  return Promise.all([responseJson, responseMetadata]).then(([data, metadata]) => ({ data, ...metadata }));
+  return Promise.resolve({ data: responseData, ...responseMetadata });
 };
 
 const failureResponse = async <ResponseData>(response: Response): Promise<ApiResponse<ResponseData>> => {

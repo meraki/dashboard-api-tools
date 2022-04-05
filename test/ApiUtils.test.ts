@@ -84,6 +84,41 @@ describe("ApiUtils", () => {
         });
       });
 
+      describe("when response is successful but json has a syntax error", () => {
+        beforeAll(() => {
+          global.fetch = jest.fn(() =>
+            Promise.resolve({
+              json: () => Promise.reject("SyntaxError: Unexpected end of JSON input"),
+              status: 200,
+              ok: true,
+            }),
+          ) as jest.Mock;
+        });
+
+        it("returns empty object for data", async () => {
+          const apiResponse = await apiRequest("GET", "www.fakeurl.com");
+
+          expect(apiResponse.data).toEqual({});
+        });
+      });
+
+      describe("when response is successful but has no body", () => {
+        beforeAll(() => {
+          global.fetch = jest.fn(() =>
+            Promise.resolve({
+              status: 200,
+              ok: true,
+            }),
+          ) as jest.Mock;
+        });
+
+        it("returns empty object for data", async () => {
+          const apiResponse = await apiRequest("GET", "www.fakeurl.com");
+
+          expect(apiResponse.data).toEqual({});
+        });
+      });
+
       describe("headers", () => {
         describe("Retry-After header", () => {
           describe("when header is a number", () => {
