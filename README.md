@@ -9,10 +9,10 @@ The goal is to create a library that is used across Meraki applications that nee
 - React hook to use `apiResponse`
 - Integration with [React Toolkit Query](https://docs.ikarem.io/display/EngMSTeam/How+to%3A+rtk-query+and+mkiredux)
 - Retries on 429 responses
+- Supports [ActionBatches](https://docs.ikarem.io/x/OYDjAQ)
 
 Features coming soon:
 - Pagination for more complex cases where interaction is required between each request (going backwards, going to a specific page)
-- [Action Batches](https://docs.ikarem.io/display/ENG/Actions%2C+Entities%2C+and+Batches) libraries this code needs to be ported over from `manage` to this package
 - Support for handling JSON error responses
 
 For more information, please see [these docs](https://docs.ikarem.io/display/ENG/Javascript+SDK+for+Making+API+Requests).
@@ -168,6 +168,81 @@ const storeErrorsInRedux = (errors) => (dispatch) => {
 await paginatedApiRequest(storeClientsInRedux, storeErrorsInRedux, {method: "GET", url: "www.some-url.com/api/v1/endpoint}, 100);
 ```
 ***
+
+## Action Batches
+
+### batchedApiRequest()
+
+`batchedApiRequest` acts as a wrapper for Meraki's [action batches](https://docs.ikarem.io/x/OYDjAQ). When first created, the status may be pending. If so, it will poll the status of the action batch and return either an error or successful response depending on the action batch's status. It accepts the following parameters:
+
+```
+orgId: string,
+actions: Action[],
+authOptions: Options,
+opts?: ActionBatchOptions
+
+```
+
+#### Response
+
+For successful requests:
+
+```
+Promise<{
+  id: string;
+  organizationId: string;
+  confirmed: boolean;
+  synchronous: boolean;
+  status: ActionBatchStatus;
+  actions: Action[];
+}>
+
+```
+For unsuccessful requests:
+
+```
+Promise<{
+  errors: string[];
+  ok: false;
+  statusCode: number;
+  statusText: string;
+}>
+
+```
+It is possible that the errors are not from action batches or api requests. Please see the `Usage` section below for handling errors.
+
+#### Usage
+
+```
+import { batchedApiRequest, isApiError } from "@dashboard-api/api-utils";
+
+...
+
+const actions = [
+  {
+    resource: "/networks/networkId, operation: "update", body: { ... }
+  },
+  ...
+]
+
+const authOptions = {
+  auth: {
+    apiKey: "your apiKey
+  }
+}
+try {
+  await batchedApiRequest(orgId, actions, authOptions)
+  /* carry on */
+} catch (badResponse) {
+  if (isApiError(badResponse)) {
+    /* do something with badResponse.errors */
+  } else {
+    /* handle the errors in any way of your choice */
+  }
+}
+```
+* If coming from Meraki's dashboard, please see [these docs](https://docs.ikarem.io/x/be4fBg) for configuring authOptions.
+
 ## React Hook
 If using React and not using a library such as Redux Toolkit Query, you may find some use in a custom React hook that provides consistent data fetching across components.
 ### useApiRequest()
