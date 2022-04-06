@@ -1,4 +1,4 @@
-import { apiRequest, ApiResponse, ApiError, Options, isApiError } from "./apiUtils";
+import { apiRequest, ApiResponse, ApiError, Options } from "./apiUtils";
 
 type Errors = string[];
 
@@ -30,19 +30,13 @@ type ActionBatchOptions = {
   synchronous?: boolean;
 };
 
-const checkBatchStatus = async (orgId: string, batchId: string): Promise<ApiResponse<ActionBatchResponse>> => {
-  const url = `/api/v1/organizations/${orgId}/actionBatches/${batchId}`;
-  const apiResp = await apiRequest<ActionBatchResponse>("GET", url);
-  return apiResp;
-};
-
 const sleep = (ms: number): Promise<(res: TimerHandler) => number> => {
   return new Promise((res) => setTimeout(res, ms));
 };
 
 const makeFailResponseObj = (apiResponse: ApiResponse<ActionBatchResponse>): ApiError => {
   //action batch itself failed;
-  //apiResp will have errors;
+  //apiResponse will have errors;
   //formatting it here for consistent error returns
   const status = apiResponse.data.status;
   const error = {
@@ -53,57 +47,6 @@ const makeFailResponseObj = (apiResponse: ApiResponse<ActionBatchResponse>): Api
   } as ApiError;
 
   return error;
-};
-
-const handleActionBatchStatus = (
-  apiResponse: ApiResponse<ActionBatchResponse>,
-): ApiResponse<ActionBatchResponse> | ApiError | undefined => {
-  const batchStatus = apiResponse.data.status;
-
-  if (batchStatus.completed) {
-    return apiResponse;
-  } else if (batchStatus.failed) {
-    const error = makeFailResponseObj(apiResponse);
-    return error;
-  } else {
-    return undefined;
-  }
-};
-
-const pollActionBatch = async (
-  orgId: string,
-  batchId: string,
-  opts?: ActionBatchOptions,
-): Promise<ApiResponse<ActionBatchResponse>> => {
-  const interval = opts?.interval || 500;
-  const endTime = Date.now() + (opts?.maxPollingTime || 12000);
-  const maxPollingErrorMsg = "Your updates have been submitted and are still pending. Try reloading the page.";
-
-  while (Date.now() <= endTime) {
-    try {
-      const apiResp = await checkBatchStatus(orgId, batchId);
-      const respOrError = handleActionBatchStatus(apiResp);
-
-      if (isApiError(respOrError)) {
-        return Promise.reject(respOrError);
-      } else if (respOrError !== undefined) {
-        return respOrError;
-      } else if (Date.now() <= endTime) {
-        await sleep(interval);
-      }
-    } catch (failedResponse) {
-      return Promise.reject(failedResponse);
-    }
-  }
-  // if nothing has been returned by now we have hit the maxPollingTime
-  const error = {
-    errors: [maxPollingErrorMsg],
-    ok: false,
-    statusCode: 200,
-    statusText: "max timeout",
-  } as ApiError;
-
-  return Promise.reject(error);
 };
 
 const batchedApiRequest = async (
@@ -118,22 +61,50 @@ const batchedApiRequest = async (
     synchronous: !!opts?.synchronous, // by default we want async
     actions,
   };
-
+  let apiResp;
+  // try to make a post actionBatch request
   try {
-    const apiResp = await apiRequest<ActionBatchResponse>("POST", url, data, authOptions);
-    const respOrError = handleActionBatchStatus(apiResp);
-    const { id } = apiResp.data;
-
-    if (isApiError(respOrError)) {
-      return Promise.reject(respOrError);
-    } else if (respOrError !== undefined) {
-      return respOrError;
-    } else {
-      return await pollActionBatch(orgId, id, opts);
+    apiResp = await apiRequest<ActionBatchResponse>("POST", url, data, authOptions);
+    if (apiResp.data?.status?.completed) {
+      return apiResp;
+    } else if (apiResp.data?.status?.failed) {
+      return Promise.reject(makeFailResponseObj(apiResp));
     }
   } catch (failedResponse) {
     return Promise.reject(failedResponse);
   }
+
+  // now we check the actionBatch status to see if things have changed since it was neither failed nor completed (aka pending)
+  const interval = opts?.interval || 500; //ms
+  const endTime = Date.now() + (opts?.maxPollingTime || 12000); //ms
+  while (Date.now() <= endTime) {
+    try {
+      const apiCheckResp = await apiRequest<ActionBatchResponse>(
+        "GET",
+        `/api/v1/organizations/${orgId}/actionBatches/${apiResp.data.id}`,
+      );
+
+      if (apiCheckResp.data?.status?.completed) {
+        return apiCheckResp;
+      } else if (apiResp.data?.status?.failed) {
+        return Promise.reject(makeFailResponseObj(apiCheckResp));
+      } else {
+        await sleep(interval);
+      }
+    } catch (failedResponse) {
+      return Promise.reject(failedResponse);
+    }
+  }
+
+  const maxPollingErrorMsg = "Your updates have been submitted and are still pending. Try reloading the page.";
+  const error = {
+    errors: [maxPollingErrorMsg],
+    ok: false,
+    statusCode: 200,
+    statusText: "max timeout",
+  } as ApiError;
+
+  return Promise.reject(error);
 };
 
 export { batchedApiRequest };
