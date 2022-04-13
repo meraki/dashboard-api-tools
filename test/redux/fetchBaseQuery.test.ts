@@ -112,24 +112,45 @@ describe("fetchBaseQuery", () => {
     expect(global.fetch).toHaveBeenCalledWith("/test/base?hello=world", expect.anything());
   });
 
-  it("should transform headers", async () => {
-    const reduxFetch = fetchBaseQuery({
-      baseUrl: "/test/",
-      paramsSerializer: () => "",
-      transformHeaders: (headers) => {
-        return Promise.resolve({ ...headers, extra: "header" });
-      },
+  describe("headers", () => {
+    it("should transform headers", async () => {
+      const reduxFetch = fetchBaseQuery({
+        baseUrl: "/test/",
+        paramsSerializer: () => "",
+        transformHeaders: (headers) => {
+          return Promise.resolve({ ...headers, extra: "header" });
+        },
+      });
+
+      await reduxFetch({ url: "base" }, {} as FetchApiArgs, {});
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          headers: {
+            extra: "header",
+          },
+        }),
+      );
     });
 
-    await reduxFetch({ url: "base" }, {} as FetchApiArgs, {});
+    it("calls transformHeaders with new Headers instance for given headers", async () => {
+      const transformHeadersMock = jest.fn();
+      const headerPairs = [
+        ["First-Header-Key", "firstHeaderValue"],
+        ["Second-Header-Key", "secondHeaderValue"],
+      ];
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        headers: {
-          extra: "header",
-        },
-      }),
-    );
+      const reduxFetch = fetchBaseQuery({
+        baseUrl: "/test/",
+        paramsSerializer: () => "",
+        transformHeaders: transformHeadersMock,
+      });
+
+      await reduxFetch({ url: "base", headers: headerPairs }, {} as FetchApiArgs, {});
+
+      expect(transformHeadersMock).toHaveBeenCalledTimes(1);
+      expect(transformHeadersMock.mock.calls[0][0]).toEqual(new Headers(headerPairs));
+    });
   });
 });
