@@ -61,9 +61,9 @@ export function fetchBaseQuery(baseOpts: {
    * Optionally transform headers based on things like the current redux state.
    */
   transformHeaders?: (
-    rawHeaders: HeadersInit,
+    rawHeaders: Headers,
     api: Pick<FetchWrapperApiOpts, "getState" | "extra" | "endpoint" | "type" | "forced">,
-  ) => Promise<HeadersInit>;
+  ) => Promise<Headers>;
   /**
    * Optionally pause all requests until the promise returned by this method
    * resolves. In theory, you can pause requests based on the headers and

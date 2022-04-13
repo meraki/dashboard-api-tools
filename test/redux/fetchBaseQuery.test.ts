@@ -4,14 +4,16 @@ type FetchArgs = Parameters<ReturnType<typeof fetchBaseQuery>>;
 type FetchApiArgs = FetchArgs[1];
 
 describe("fetchBaseQuery", () => {
+  const mockFetchResponse = jest.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({ id: "1234", count: 23 }),
+      status: 200,
+      ok: true,
+    }),
+  ) as jest.Mock;
+
   beforeEach(() => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve({ id: "1234", count: 23 }),
-        status: 200,
-        ok: true,
-      }),
-    ) as jest.Mock;
+    global.fetch = mockFetchResponse;
   });
 
   afterEach(() => {
@@ -118,20 +120,25 @@ describe("fetchBaseQuery", () => {
         baseUrl: "/test/",
         paramsSerializer: () => "",
         transformHeaders: (headers) => {
-          return Promise.resolve({ ...headers, extra: "header" });
+          const preparedHeaders = new Headers(headers);
+          preparedHeaders.append("Additional-Header", "additional header value");
+
+          return Promise.resolve(preparedHeaders);
         },
       });
 
-      await reduxFetch({ url: "base" }, {} as FetchApiArgs, {});
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          headers: {
-            extra: "header",
-          },
-        }),
+      await reduxFetch(
+        { url: "base", headers: { "Provided-Header": "provided header value" } },
+        {} as FetchApiArgs,
+        {},
       );
+
+      const headersInRequest = mockFetchResponse.mock.calls[0][1].headers.entries();
+
+      expect(Object.fromEntries(headersInRequest)).toEqual({
+        "provided-header": "provided header value",
+        "additional-header": "additional header value",
+      });
     });
 
     it("calls transformHeaders with new Headers instance for given headers", async () => {
