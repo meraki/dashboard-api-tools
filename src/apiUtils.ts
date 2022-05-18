@@ -179,14 +179,13 @@ const makePaginatedRequest = async <ResponseData>(
     const apiResp = await apiRequest<ResponseData>(method, url);
 
     const { data: responseData, nextPageUrl } = apiResp;
-
     dataHandler(responseData);
 
     if (nextPageUrl) {
       await makePaginatedRequest<ResponseData>(
         dataHandler,
         errorHandler,
-        apiRequestParams,
+        { ...apiRequestParams, url: nextPageUrl },
         maxRequests,
         ++requestCount,
       );
