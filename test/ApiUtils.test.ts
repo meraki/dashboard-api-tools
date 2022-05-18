@@ -601,9 +601,6 @@ describe("ApiUtils", () => {
       let responseObject: Record<string, unknown>;
       const expectedCalls = 5;
 
-      const linkHeader = (startingAfter: number) =>
-        `</api/v0/foos?startingAfter=0>; rel=first, </api/v0/foos?startingAfter=${startingAfter + 1}>; rel=next`;
-
       beforeEach(() => {
         count = 0;
         responseObject = { id: "1234" };
@@ -616,7 +613,12 @@ describe("ApiUtils", () => {
             },
             status: 200,
             ok: true,
-            headers: { get: (): string | undefined => (count < expectedCalls ? linkHeader(count) : undefined) },
+            headers: {
+              get: (): string | undefined =>
+                count < expectedCalls
+                  ? `</api/v0/foos?startingAfter=0>; rel=first, </api/v0/foos?startingAfter=${count}>; rel=next`
+                  : undefined,
+            },
           }),
         ) as jest.Mock;
       });
@@ -635,6 +637,19 @@ describe("ApiUtils", () => {
         await paginatedApiRequest(dataHandler, jest.fn(), { method: "GET", url: "www.fakeurl.com" });
 
         expect(dataHandler).toHaveBeenCalledTimes(expectedCalls);
+      });
+
+      it("calls subsequent paginated requests with next page url", async () => {
+        const dataHandler = jest.fn();
+
+        await paginatedApiRequest(dataHandler, jest.fn(), { method: "GET", url: "/api/v0/foos?startingAfter=0" });
+
+        expect(fetch).toHaveBeenCalledTimes(5);
+        expect((fetch as jest.Mock).mock.calls[0][0]).toEqual("/api/v0/foos?startingAfter=0");
+        expect((fetch as jest.Mock).mock.calls[1][0]).toEqual("/api/v0/foos?startingAfter=1");
+        expect((fetch as jest.Mock).mock.calls[2][0]).toEqual("/api/v0/foos?startingAfter=2");
+        expect((fetch as jest.Mock).mock.calls[3][0]).toEqual("/api/v0/foos?startingAfter=3");
+        expect((fetch as jest.Mock).mock.calls[4][0]).toEqual("/api/v0/foos?startingAfter=4");
       });
 
       it("stops making requests when provided maxRequests threshold is reached", async () => {
