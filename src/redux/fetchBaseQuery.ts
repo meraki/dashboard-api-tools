@@ -51,7 +51,7 @@ type QueryParam = string | number;
  * https://redux-toolkit.js.org/rtk-query/api/fetchBaseQuery#handling-non-standard-response-status-codes
  */
 export function fetchBaseQuery(baseOpts: {
-  baseUrl: `/${string}/`;
+  baseUrl: `${string}/`;
   /**
    * Needed in order to transform query params into a search URL.
    * In manage, use `lib/url/buildQueryParams`.
