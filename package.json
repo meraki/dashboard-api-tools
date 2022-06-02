@@ -1,7 +1,8 @@
 {
-  "name": "@dashboard-api/api-utils",
-  "version": "0.5.3",
-  "description": "Typescript SDK for interacting with Meraki's public API",
+  "name": "@meraki/dashboard-api-tools",
+  "author": "Cisco Meraki",
+  "version": "0.0.1",
+  "description": "Typescript library for interacting with Meraki's public API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "directories": {
@@ -13,17 +14,19 @@
     "build": "tsc --build",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx test/ src/",
     "prettierFormat": "prettier --config .prettierrc.json --write .",
-    "publishPackage": "tsc --build && npm publish --registry https://artifactory.ikarem.io/artifactory/api/npm/meraki-npm-packages/"
+    "publishPackage": "npm publish"
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@gitlab.ikarem.io:2222/dashboard-api/apiutils.git"
+    "url": "git+https://github.com/meraki/dashboard-api-tools.git"
   },
   "keywords": [
+    "cisco",
+    "meraki",
+    "dashboard",
     "api"
   ],
-  "author": "Dashboard API Team",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@reduxjs/toolkit": "^1.7.1",
     "@testing-library/react": "^12.1.3",
@@ -40,13 +43,11 @@
     "ts-jest": "^27.1.3",
     "typescript": "^4.5.5"
   },
-  "publishConfig": {
-    "registry": "https://artifactory.ikarem.io/artifactory/api/npm/meraki-npm-packages/"
-  },
-  "peerDependencies": {
-    "@reduxjs/toolkit": "^1.7.1"
-  },
   "files": [
     "dist"
-  ]
+  ],
+  "bugs": {
+    "url": "https://github.com/meraki/dashboard-api-tools/issues"
+  },
+  "homepage": "https://github.com/meraki/dashboard-api-tools#readme"
 }
