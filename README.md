@@ -1,4 +1,4 @@
-# @meraki/dashboard-api-tools
+# @cisco-meraki/dashboard-api-tools
 
 Typescript SDK for interacting with [Meraki's API](https://developer.cisco.com/meraki/api-v1/). This library provides an interface for Javascript and Typescript applications to interact with Cisco Meraki's cloud-managed platform.
 
@@ -13,10 +13,10 @@ Features:
 
 # Install
 ```
-yarn add @meraki/dashboard-api-tools
+yarn add @cisco-meraki/dashboard-api-tools
 ```
 ```
-npm install @meraki/dashboard-api-tools
+npm install @cisco-meraki/dashboard-api-tools
 ```
 
 # How to Use
@@ -81,7 +81,7 @@ await apiRequest(
 ```
 #### Usage
 ```
-import { apiRequest } from "@meraki/dashboard-api-tools";
+import { apiRequest } from "@cisco-meraki/dashboard-api-tools";
 
 ...
 
@@ -122,7 +122,7 @@ Accepted Parameters:
 
 #### Usage
 ```
-import { apiRequest, isApiError } from "@meraki/dashboard-api-tools";
+import { apiRequest, isApiError } from "@cisco-meraki/dashboard-api-tools";
 
 ...
 
@@ -159,7 +159,7 @@ Accepted Parameters:
 
 #### Usage
 ```
-import { paginatedApiRequest } from "@meraki/dashboard-api-tools";
+import { paginatedApiRequest } from "@cisco-meraki/dashboard-api-tools";
 
 ...
 
@@ -272,7 +272,7 @@ It returns 3 values:
 
 #### Usage
 ```
-import { useApiRequest } from "@meraki/dashboard-api-tools";
+import { useApiRequest } from "@cisco-meraki/dashboard-api-tools";
 
 ...
 
@@ -315,7 +315,7 @@ Note that `responseHandler` and `validateStatus`, which are [expected to be part
 
 #### Usage
 ```
-import { fetchBaseQuery } from "@meraki/dashboard-api-tools";
+import { fetchBaseQuery } from "@cisco-meraki/dashboard-api-tools";
 
 ...
 
