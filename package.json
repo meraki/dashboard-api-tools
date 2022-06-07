@@ -1,7 +1,7 @@
 {
   "name": "@cisco-meraki/dashboard-api-tools",
   "author": "Cisco Meraki",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "Typescript library for interacting with Meraki's public API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
