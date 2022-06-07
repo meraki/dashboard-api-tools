@@ -22,15 +22,15 @@ npm install @cisco-meraki/dashboard-api-tools
 # How to Use
 ## Making API Requests
 ### apiRequest()
-`apiRequest` acts as a wrapper around Javascript's `fetch` that is strongly-typed and supports Meraki's API-specific features. Note that requests to Meraki's API [requires an API Key](https://developer.cisco.com/meraki/api-v1/#!authorization/authorization). See the section on [Providing API Key](#providing-api-key) below.
+`apiRequest` acts as a wrapper around Javascript's `fetch` that is strongly-typed and supports Meraki's API-specific features. Note that requests to Meraki's API [require an API Key](https://developer.cisco.com/meraki/api-v1/#!authorization/authorization). See the section on [Providing API Key](#providing-api-key) below.
 
 Accepted Parameters:
 - `method`: HTTP method of API request. Must be one of "get", "post", "put", "delete", "options", "GET", "POST", "PUT", "DELETE", "OPTIONS"
 - `url`: URL of API request,
 - `data?`: Optional. Payload body for API request. Do not use this for `GET` requests. Instead, any request parameters for `GET` requests should be supplied in the URL as query parameters.
 - `options?`: Optional
-  - `fetchOptions`: Object that contains fields required for authenticating the API requests.
-  - `auth`: Object used to store authentication options
+  - `fetchOptions`: Object that contains fields to override default parameters passed to `fetch`
+  - `auth`: Object that contains fields required for authenticating the API requests
     - `apiKey`: User's API key
 
 #### Response
@@ -52,7 +52,7 @@ Promise<{
   data: ResponseData
 }>
 ```
-Note that `data` is typed as a generic type `ResponseData`. This generic type will be passed when calling `apiRequest<ResponseData>()` and allows the consumer to set the expected data structure of the API response. Since response types vary across endpoints, we wanted to allow for flexibility in what the type of `data` should be.
+Note that `data` is typed as a generic type `ResponseData`. This generic type will be passed when calling `apiRequest<ResponseData>()` and allows the consumer to set the expected data structure of the API response.
 
 
 For unsuccessful API requests:
@@ -65,7 +65,7 @@ Promise<{
 }>
 ```
 #### Providing API Key
-In order to interact with the Meraki Dashboard API, you'll need to provide your API key in the `X-Cisco-Meraki-API-Key` header. If you need help obtaining this key, follow [the steps](https://developer.cisco.com/meraki/api-v1/#!authorization/obtaining-your-meraki-api-key) in our developer documentation.
+In order to interact with the Meraki Dashboard API, you'll need to provide your API key. If you need help obtaining this key, follow [the steps](https://developer.cisco.com/meraki/api-v1/#!authorization/obtaining-your-meraki-api-key) in our developer documentation.
 
 ```
 await apiRequest(
@@ -94,10 +94,9 @@ const data = {
 await apiRequest<ResponseObjectType>("POST", url, data)
 ```
 Note that `ResponseObjectType` is whatever type you expect the response object from the API request to be in.
-We made this a generic as the data object can vary across endpoints.
 
-To use in a consumer of this library, you can either use `async`/`await` or promise chaining
-##### async/await
+This function is compatible with either `async`/`await` or promise chaining
+##### async/await example
 ```
 try {
   await apiRequest("GET", "www.some-url.com/api/v1/endpoint");
@@ -106,7 +105,7 @@ try {
   /* do something with badResponse.errors */
 }
 ```
-##### promise chaining
+##### promise chaining example
 ```
 apiRequest("GET", "www.some-url.com/api/v1/endpoint")
   .then(() => /* carry on */)
@@ -145,7 +144,7 @@ The return object of [`apiRequest()`](#making-api-requests) includes `firstPageU
 ### paginatedApiRequest()
 This function will make paginated requests to the provided URL based on the `perPage` query parameter. It makes a request to the given URL, then makes successive requests to URLs provided in the `Link` header from the response. See [docs on pagination](https://developer.cisco.com/meraki/api-latest/#!pagination) for more details on the `Link` header.
 
-It accepts functions that will be called for each successful response as well as any errors from unsuccessful responses.
+It accepts functions that will be called for each successful response as well as each unsuccessful response.
 
 It also accepts a parameter to set the maximum number of requests allowed for this endpoint to protect against abnormally large or infinite number of successive requests.
 
@@ -153,7 +152,7 @@ The method signature accepts the above 3 values as well as an object with a shap
 
 Accepted Parameters:
 - `dataHandler`: Callback that is invoked every time a successful response is received. For example, this can be a handler that dispatches a Redux action every time data is received from an endpoint.
-- `errorHandler`: Callback that is invoked each time a response returns errors.
+- `errorHandler`: Callback that is invoked each time a response returns errors
 - `apiRequestParams`: Object that contains fields for each parameter used for [`apiRequest()`](#making-api-requests)
 - `maxRequests`: Maximum number of paginated requests that will be made before halting all requests. The default value is 9,999.
 
@@ -176,25 +175,25 @@ await paginatedApiRequest(storeClientsInRedux, storeErrorsInRedux, {method: "GET
 ***
 
 ## Action Batches
-[Action Batches](https://developer.cisco.com/meraki/api-v1/#!action-batches-overview/action-batches) are a special type of Dashboard API mechanism for submitting batched configuration requests in a single synchronous or asynchronous transaction. Action Batches are ideal for bulk configuration, either in the initial provisioning process, or for rolling out wide-scale configuration changes. For example, add a switch to a network, configure all 48 ports, and set the switch’s management interface in a single POST.
+[Action Batches](https://developer.cisco.com/meraki/api-v1/#!action-batches-overview/action-batches) are a special type of Dashboard API mechanism for submitting batched configuration requests in a single synchronous or asynchronous transaction. Action Batches are ideal for bulk configuration, either in the initial provisioning process, or for rolling out wide-scale configuration changes. For example, you could add a switch to a network, configure all 48 ports, and set the switch’s management interface in a single POST request.
 ### batchedApiRequest()
 
 `batchedApiRequest` acts as a wrapper for Meraki's Action Batches. When the request is first made and the Action Batch is initially created, the status may be "pending" while waiting for the batches to complete. If so, it will poll the status of the action batch and return either an error or successful response depending on the Action Batch's status.
 
 Accepted Parameters:
-- `organizationId`: Id of the organization to run the series of API requests on.
+- `organizationId`: Id of the organization to run the series of API requests on
 - `actions`: Object that contains information around which API requests to include in the Action Batch. Contains these fields:
   - `resource`: URL fragment of API request
   - `operation`: Must be "create", "update" or "destroy"
-  - `body`: Payload body for API request.
-- `authOptions`: Object that contains fields required for authenticating the API requests.
+  - `body`: Payload body for API request
+- `authOptions`: Object that contains fields required for authenticating the API requests
   - `fetchOptions`: Optional options to override parameters passed to `fetch` call
   - `auth`: Object used to store authentication options
     - `apiKey`: User's API key
 - `opts?`: Optional. Object that contains extra metadata for how you want the Action Batch to perform. Contains these fields:
   - `maxPollingTime`: Maximum time (in ms) before it halts requests that check on Action Batch status. Defaults to 12,000ms
   - `auth`: Time (in ms) between each request to check if Action Batch is complete. Defaults to 500ms
-  - `synchronous`: Flag that tells the Action Batch to run synchronously or asynchronously.
+  - `synchronous`: Flag that tells the Action Batch to run synchronously or asynchronously
 
 #### Response
 
@@ -259,7 +258,7 @@ try {
 ## React Hook
 If using React and not using a library such as Redux Toolkit Query that provide hooks for you, you may find some use in a custom React hook that provides consistent data fetching across components.
 ### useApiRequest()
-React hook for interacting with Meraki's public API. It is a wrapper around `useState` and `useEffect` and uses `isApiError()` to make API requests and format the responses.
+You can use this function as a React hook for interacting with Meraki's public API. It is a wrapper around React's `useState` and `useEffect` hooks and uses `isApiError()` to make API requests and format the responses.
 
 It has a method signature that accepts a generic type that represents the expected response object type, as well as two arguments:
 - `apiRequestParams`: An object with a the shape identical to the arguments provided for [`apiRequest()`](#making-api-requests)
