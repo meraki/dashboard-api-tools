@@ -1,0 +1,22 @@
+name: GitHub Actions Demo
+on: [push]
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 15.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Verify Node version ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: echo "Installing project dependencies..."
+      - run: npm ci
+      - run: echo "Building package..."
+      - run: npm run build
+      - run: echo "Linting code..."
+      - run: npm run lint
+      - run: echo "Running unit tests..."
+      - run: npm run test
