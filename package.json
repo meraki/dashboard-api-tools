@@ -1,7 +1,7 @@
 {
   "name": "@cisco-meraki/dashboard-api-tools",
   "author": "Cisco Meraki",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Typescript library for interacting with Meraki's public API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,6 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@reduxjs/toolkit": "^1.7.1",
     "@testing-library/react": "^12.1.3",
     "@types/jest": "^27.4.0",
     "@typescript-eslint/eslint-plugin": "^5.11.0",
@@ -49,5 +48,8 @@
   "bugs": {
     "url": "https://github.com/meraki/dashboard-api-tools/issues"
   },
-  "homepage": "https://github.com/meraki/dashboard-api-tools#readme"
+  "homepage": "https://github.com/meraki/dashboard-api-tools#readme",
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.8.3"
+  }
 }
