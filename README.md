@@ -29,7 +29,7 @@ Accepted Parameters:
 - `url`: URL of API request,
 - `data?`: Optional. Payload body for API request. Do not use this for `GET` requests. Instead, any request parameters for `GET` requests should be supplied in the URL as query parameters.
 - `options?`: Optional
-  - `fetchOptions`: Object that contains fields to override default parameters passed to `fetch`
+  - `fetchOptions`: Object that contains fields to override default parameters passed to `fetch`. This is where you would add any headers that you'd like to send to your API request, which may be useful when trying to troubleshoot CORS issues (see Troubleshooting section below)
   - `auth`: Object that contains fields required for authenticating the API requests
     - `apiKey`: User's API key
 
@@ -334,4 +334,27 @@ export const merakiApi = createApi({
   endpoints: () => ({}),
 });
 
+```
+# Troubleshooting
+## CORS issues
+The same-origin policy limits the ability of a browser to use resources from a server outside of its domain to help prevent forging and stealing private data. Because of this, websites can generally only fetch data from their own servers. CORS is a mechanism implemented by browsers that uses HTTP headers that let the user request data across domains.
+
+Any application that you build that wants to fetch Meraki Dashboard data will be on a different domain and will therefore need to account for CORS. Our recommendation is to add a simple CORS proxy to your application.
+
+CORS proxies will allow you to fetch the intended data from Meraki's API. Instead of requesting data directly from a Meraki endpoint, you'll send requests to the CORS proxy server instead. The proxy server will then forward the request to Meraki's API as normal and forward the response back to the client. This server is also a great place to add you API key to Meraki API requests.
+
+### Example
+```
+import { apiRequest } from "@cisco-meraki/dashboard-api-tools";
+...
+const fetchOptions = {
+  headers: {
+    # This header will need to be supported by your CORS proxy
+    "Custom-Header-Used-By-Proxy": "https://api.meraki.com/api/v1/organizations",
+  }
+}
+
+# Use the URL of the CORS proxy instead of api.meraki.com
+# The CORS proxy will then forward requests to the desired endpoint using "Custom-Header-Used-By-Proxy"
+apiRequest("GET", "http://<PROXY-URL>/", undefined, { fetchOptions: fetchOptions })
 ```
