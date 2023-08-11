@@ -86,7 +86,7 @@ const batchedApiRequest = async (
 
       if (apiCheckResp.data?.status?.completed) {
         return apiCheckResp;
-      } else if (apiResp.data?.status?.failed) {
+      } else if (apiCheckResp.data?.status?.failed) {
         return Promise.reject(makeFailResponseObj(apiCheckResp));
       } else {
         await sleep(interval);
