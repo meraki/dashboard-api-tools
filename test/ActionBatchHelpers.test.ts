@@ -4,7 +4,7 @@ import { apiRequest } from "../src/apiUtils";
 jest.mock("../src/apiUtils");
 const mockedApiRequest = jest.mocked(apiRequest) as jest.Mock;
 
-describe("ActionBatchHelers", () => {
+describe("ActionBatchHelpers", () => {
   afterEach(() => {
     mockedApiRequest.mockClear();
   });
@@ -111,6 +111,36 @@ describe("ActionBatchHelers", () => {
       } catch (err: unknown) {
         expect(mockedApiRequest.mock.calls.length).toBeGreaterThan(1);
         expect(mockedApiRequest.mock.calls).toContainEqual(["GET", "/api/v1/organizations/2/actionBatches/1234"]);
+      }
+    });
+
+    it("stops polling when an error is returned", async () => {
+      mockedApiRequest.mockResolvedValueOnce({
+        data: {
+          id: "1234",
+          status: {
+            completed: false,
+            failed: false,
+            errors: [],
+          },
+        },
+      });
+      mockedApiRequest.mockResolvedValue({
+        data: {
+          id: "1234",
+          status: {
+            completed: false,
+            failed: true,
+            errors: ["some error"],
+          },
+        },
+      });
+
+      try {
+        await batchedApiRequest(orgId, actions, authOptions, { maxPollingTime: 5 });
+      } catch (err: unknown) {
+        expect(mockedApiRequest.mock.calls.length).toEqual(2); // one for the initial POST, and one status update
+        expect(err).toMatchObject({ errors: ["some error"] });
       }
     });
   });
