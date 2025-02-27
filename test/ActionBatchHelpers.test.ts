@@ -1,5 +1,5 @@
 import { batchedApiRequest } from "../src/actionBatchHelpers";
-import { apiRequest } from "../src/apiUtils";
+import { ApiError, apiRequest } from "../src/apiUtils";
 
 jest.mock("../src/apiUtils");
 const mockedApiRequest = jest.mocked(apiRequest) as jest.Mock;
@@ -55,9 +55,9 @@ describe("ActionBatchHelpers", () => {
 
       try {
         await batchedApiRequest(orgId, actions, authOptions);
-      } catch (err: any) {
-        expect(err.errors).not.toBeNull();
-        expect(err.errors).toEqual(errorMsgs);
+      } catch (err) {
+        expect((err as ApiError).errors).not.toBeNull();
+        expect((err as ApiError).errors).toEqual(errorMsgs);
       }
     });
 
@@ -70,9 +70,9 @@ describe("ActionBatchHelpers", () => {
 
       try {
         await batchedApiRequest(orgId, actions, authOptions);
-      } catch (err: any) {
-        expect(err.errors).not.toBeNull();
-        expect(err.errors).toEqual(errorMsgs);
+      } catch (err) {
+        expect((err as ApiError).errors).not.toBeNull();
+        expect((err as ApiError).errors).toEqual(errorMsgs);
       }
     });
 
@@ -90,11 +90,14 @@ describe("ActionBatchHelpers", () => {
 
       try {
         await batchedApiRequest(orgId, actions, authOptions, { maxPollingTime: 1 });
-      } catch (err: any) {
-        expect(err.errors).not.toBeNull();
-        expect(err.errors).toEqual(["Your updates have been submitted and are still pending. Try reloading the page."]);
+      } catch (err) {
+        expect((err as ApiError).errors).not.toBeNull();
+        expect((err as ApiError).errors).toEqual([
+          "Your updates have been submitted and are still pending. Try reloading the page.",
+        ]);
       }
     });
+
     it("polls the status when the initial status is pending", async () => {
       mockedApiRequest.mockResolvedValue({
         data: {
@@ -108,7 +111,7 @@ describe("ActionBatchHelpers", () => {
       });
       try {
         await batchedApiRequest(orgId, actions, authOptions, { maxPollingTime: 5 });
-      } catch (err: unknown) {
+      } catch (err) {
         expect(mockedApiRequest.mock.calls.length).toBeGreaterThan(1);
         expect(mockedApiRequest.mock.calls).toContainEqual(["GET", "/api/v1/organizations/2/actionBatches/1234"]);
       }
@@ -138,7 +141,7 @@ describe("ActionBatchHelpers", () => {
 
       try {
         await batchedApiRequest(orgId, actions, authOptions, { maxPollingTime: 5 });
-      } catch (err: unknown) {
+      } catch (err) {
         expect(mockedApiRequest.mock.calls.length).toEqual(2); // one for the initial POST, and one status update
         expect(err).toMatchObject({ errors: ["some error"] });
       }
