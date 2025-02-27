@@ -143,7 +143,7 @@ describe("fetchBaseQuery", () => {
 
     it("calls transformHeaders with new Headers instance for given headers", async () => {
       const transformHeadersMock = jest.fn();
-      const headerPairs = [
+      const headerPairs: HeadersInit = [
         ["First-Header-Key", "firstHeaderValue"],
         ["Second-Header-Key", "secondHeaderValue"],
       ];
