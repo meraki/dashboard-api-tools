@@ -79,7 +79,7 @@ const successResponse = async <ResponseData>(response: Response): Promise<ApiRes
   try {
     responseData = await response.json();
   } catch {
-    responseData = {};
+    responseData = undefined;
   }
 
   const responseMetadata = extractCustomHeaders(response);
