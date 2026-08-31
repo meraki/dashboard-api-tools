@@ -96,7 +96,7 @@ export function fetchBaseQuery(baseOpts: {
       ...rest
     } = typeof fetchArg === "string" ? { url: fetchArg } : fetchArg;
 
-    const headers = await transformHeaders(new Headers(stripUndefined(rawHeaders)), {
+    const headers = await transformHeaders(new Headers(stripUndefined(rawHeaders) as HeadersInit), {
       getState,
       extra,
       endpoint,
