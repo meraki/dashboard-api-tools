@@ -95,10 +95,10 @@ describe("ApiUtils", () => {
           ) as jest.Mock;
         });
 
-        it("returns empty object for data", async () => {
+        it("returns undefined for data", async () => {
           const apiResponse = await apiRequest("GET", "www.fakeurl.com");
 
-          expect(apiResponse.data).toEqual({});
+          expect(apiResponse.data).toBeUndefined();
         });
       });
 
@@ -112,10 +112,10 @@ describe("ApiUtils", () => {
           ) as jest.Mock;
         });
 
-        it("returns empty object for data", async () => {
+        it("returns undefined for data", async () => {
           const apiResponse = await apiRequest("GET", "www.fakeurl.com");
 
-          expect(apiResponse.data).toEqual({});
+          expect(apiResponse.data).toBeUndefined();
         });
       });
 
