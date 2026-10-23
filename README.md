@@ -304,6 +304,8 @@ const ComponentUsingHook = () => {
 ### fetchBaseQuery
 RTK Query allows for a custom base query, which is usually just a wrapper around Javascript's native `fetch`, to be provided to customize data handling and response objects across endpoints. For this case, we have created the `fetchBaseQuery` function that integrates with RTK Query and provides a consistent way of making API requests while still allowing individual endpoints to customize requests and responses as needed.
 
+Compatibility verified with Redux Toolkit 1.8.6, 1.9.7, and 2.13.0.
+
 Because `fetchBaseQuery` is using [`apiRequest()`](#making-api-requests), we can access all of the response data that we expect from our API responses.
 
 The return object of this function includes these fields:
