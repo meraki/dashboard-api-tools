@@ -1,5 +1,5 @@
 import { isPlainObject } from "@reduxjs/toolkit";
-import { FetchArgs, fetchBaseQuery as originalFetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { BaseQueryFn, FetchArgs } from "@reduxjs/toolkit/query";
 import { isApiError } from "..";
 import { apiRequest } from "../apiUtils";
 
@@ -31,9 +31,8 @@ function stripUndefined(headers: ReduxHeaders) {
   return copy as Record<string, string>;
 }
 
-type FetchWrapper = ReturnType<typeof originalFetchBaseQuery>;
-type FetchWrapperOpts = Parameters<FetchWrapper>;
-type FetchWrapperApiOpts = FetchWrapperOpts[1];
+// Preserve the full public RTK context without expanding it into private imports.
+type FetchWrapperApiOpts = Parameters<BaseQueryFn>[1];
 
 type ApiRequestOpts = Parameters<typeof apiRequest>;
 type ApiRequestMethod = ApiRequestOpts[0];
@@ -76,8 +75,13 @@ export function fetchBaseQuery(baseOpts: {
 }) {
   const { baseUrl, transformHeaders = (x) => x, pauseUntilResolved, paramsSerializer } = baseOpts;
 
-  return async (...args: FetchWrapperOpts) => {
-    const [fetchArg, api] = args;
+  return async (
+    fetchArg: string | FetchArgs,
+    api: FetchWrapperApiOpts,
+    // Keep the third argument for RTK Query and existing direct callers.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _extraOptions: Parameters<BaseQueryFn>[2],
+  ) => {
     const { signal, getState, extra, endpoint, forced = false, type } = api;
 
     let { url } = typeof fetchArg === "string" ? { url: fetchArg } : fetchArg;
